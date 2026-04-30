@@ -16,6 +16,9 @@ interface ClientDao {
     @Query("SELECT * FROM clients WHERE name = :name LIMIT 1")
     suspend fun findByName(name: String): ClientEntity?
 
+    @Query("SELECT * FROM clients")
+    suspend fun getAllClients(): List<ClientEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(client: ClientEntity): Long
 

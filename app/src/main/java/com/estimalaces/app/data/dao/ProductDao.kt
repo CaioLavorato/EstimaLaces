@@ -22,6 +22,9 @@ interface ProductDao {
     @Query("SELECT * FROM products WHERE name = :name LIMIT 1")
     suspend fun findByName(name: String): ProductEntity?
 
+    @Query("SELECT * FROM products")
+    suspend fun getAllProducts(): List<ProductEntity>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(product: ProductEntity): Long
 

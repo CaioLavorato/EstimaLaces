@@ -17,6 +17,7 @@ import com.estimalaces.app.domain.model.DashboardSummary
 import com.estimalaces.app.domain.model.ReportSummary
 import com.estimalaces.app.domain.rules.GiftRules
 import com.estimalaces.app.domain.rules.PricingRules
+import com.estimalaces.app.domain.rules.TextRules
 import com.estimalaces.app.domain.usecase.DateRange
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -102,6 +103,9 @@ class EstimaLacesRepository(
     ) = withContext(Dispatchers.IO) {
         val cleanedName = name.trim()
         val existing = productDao.findByName(cleanedName)
+            ?: productDao.getAllProducts().firstOrNull {
+                TextRules.normalizeName(it.name) == TextRules.normalizeName(cleanedName)
+            }
         val product = ProductEntity(
             id = existing?.id ?: 0,
             name = cleanedName,
@@ -159,6 +163,9 @@ class EstimaLacesRepository(
         val cleanedName = name.trim()
         if (cleanedName.isBlank()) return null
         val existing = productDao.findByName(cleanedName)
+            ?: productDao.getAllProducts().firstOrNull {
+                TextRules.normalizeName(it.name) == TextRules.normalizeName(cleanedName)
+            }
         if (existing != null) return existing
         val id = productDao.insert(
             ProductEntity(
@@ -194,6 +201,9 @@ class EstimaLacesRepository(
             ?: ensureProduct(productName, productType, productCost, initialQuantity = 0)
         val cleanedClientName = clientName.trim().ifBlank { "Cliente sem nome" }
         val existingClient = clientDao.findByName(cleanedClientName)
+            ?: clientDao.getAllClients().firstOrNull {
+                TextRules.normalizeName(it.name) == TextRules.normalizeName(cleanedClientName)
+            }
         val client = if (existingClient == null) {
             val id = clientDao.insert(ClientEntity(name = cleanedClientName))
             ClientEntity(id = id, name = cleanedClientName)
@@ -277,6 +287,9 @@ class EstimaLacesRepository(
         val product = ensureProduct(productName, "lace", productCost, initialQuantity = 0)
         val cleanedClientName = clientName.trim().ifBlank { "Cliente sem nome" }
         val existingClient = clientDao.findByName(cleanedClientName)
+            ?: clientDao.getAllClients().firstOrNull {
+                TextRules.normalizeName(it.name) == TextRules.normalizeName(cleanedClientName)
+            }
         val client = if (existingClient == null) {
             val id = clientDao.insert(ClientEntity(name = cleanedClientName))
             ClientEntity(id = id, name = cleanedClientName)
