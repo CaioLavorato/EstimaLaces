@@ -26,7 +26,7 @@ import com.estimalaces.app.data.entity.SaleEntity
         GiftEntity::class,
         PaymentEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class EstimaLacesDatabase : RoomDatabase() {
