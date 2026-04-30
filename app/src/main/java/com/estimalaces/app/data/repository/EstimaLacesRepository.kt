@@ -6,11 +6,13 @@ import com.estimalaces.app.data.dao.GoalDao
 import com.estimalaces.app.data.dao.ProductDao
 import com.estimalaces.app.data.dao.SaleDao
 import com.estimalaces.app.data.dao.SaleExportRow
+import com.estimalaces.app.data.dao.StockMovementDao
 import com.estimalaces.app.data.entity.ClientEntity
 import com.estimalaces.app.data.entity.GiftEntity
 import com.estimalaces.app.data.entity.GoalEntity
 import com.estimalaces.app.data.entity.ProductEntity
 import com.estimalaces.app.data.entity.SaleEntity
+import com.estimalaces.app.data.entity.StockMovementEntity
 import com.estimalaces.app.domain.model.DashboardSummary
 import com.estimalaces.app.domain.model.ReportSummary
 import com.estimalaces.app.domain.rules.GiftRules
@@ -27,7 +29,8 @@ class EstimaLacesRepository(
     private val clientDao: ClientDao,
     private val saleDao: SaleDao,
     private val goalDao: GoalDao,
-    private val giftDao: GiftDao
+    private val giftDao: GiftDao,
+    private val stockMovementDao: StockMovementDao
 ) {
     fun observeProducts(): Flow<List<ProductEntity>> = productDao.observeProducts()
     fun observeLowStockProducts(): Flow<List<ProductEntity>> = productDao.observeLowStockProducts()
@@ -120,6 +123,31 @@ class EstimaLacesRepository(
 
     suspend fun addStock(productId: Long, amount: Int) = withContext(Dispatchers.IO) {
         if (amount > 0) productDao.addStock(productId, amount)
+    }
+
+    suspend fun replenishStock(
+        productId: Long,
+        quantity: Int,
+        note: String?
+    ) = withContext(Dispatchers.IO) {
+        require(quantity > 0) { "Informe uma quantidade valida" }
+        val product = productDao.findById(productId)
+            ?: throw NoSuchElementException("Produto nao encontrado")
+        val previousStock = product.currentQuantity
+        val currentStock = previousStock + quantity
+        productDao.update(product.copy(currentQuantity = currentStock))
+        stockMovementDao.insert(
+            StockMovementEntity(
+                productId = product.id,
+                productName = product.name,
+                type = "REPLENISH",
+                quantity = quantity,
+                previousStock = previousStock,
+                currentStock = currentStock,
+                note = note.orEmpty().trim(),
+                createdAt = System.currentTimeMillis()
+            )
+        )
     }
 
     private suspend fun ensureProduct(

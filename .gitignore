@@ -5,3 +5,6 @@ build/
 local.properties
 *.iml
 app/build/
+exports/
+outputs/
+node_modules/

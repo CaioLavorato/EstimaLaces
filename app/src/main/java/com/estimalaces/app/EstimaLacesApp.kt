@@ -18,7 +18,11 @@ class EstimaLacesApp : Application() {
             EstimaLacesDatabase::class.java,
             "estimalaces.db"
         )
-            .addMigrations(EstimaLacesDatabase.MIGRATION_1_2, EstimaLacesDatabase.MIGRATION_2_3)
+            .addMigrations(
+                EstimaLacesDatabase.MIGRATION_1_2,
+                EstimaLacesDatabase.MIGRATION_2_3,
+                EstimaLacesDatabase.MIGRATION_3_4
+            )
             .build()
 
         repository = EstimaLacesRepository(
@@ -26,7 +30,8 @@ class EstimaLacesApp : Application() {
             clientDao = database.clientDao(),
             saleDao = database.saleDao(),
             goalDao = database.goalDao(),
-            giftDao = database.giftDao()
+            giftDao = database.giftDao(),
+            stockMovementDao = database.stockMovementDao()
         )
 
         ordersSyncService = OrdersSyncService(repository).also { it.start() }

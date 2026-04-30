@@ -10,12 +10,14 @@ import com.estimalaces.app.data.dao.GoalDao
 import com.estimalaces.app.data.dao.PaymentDao
 import com.estimalaces.app.data.dao.ProductDao
 import com.estimalaces.app.data.dao.SaleDao
+import com.estimalaces.app.data.dao.StockMovementDao
 import com.estimalaces.app.data.entity.ClientEntity
 import com.estimalaces.app.data.entity.GiftEntity
 import com.estimalaces.app.data.entity.GoalEntity
 import com.estimalaces.app.data.entity.PaymentEntity
 import com.estimalaces.app.data.entity.ProductEntity
 import com.estimalaces.app.data.entity.SaleEntity
+import com.estimalaces.app.data.entity.StockMovementEntity
 
 @Database(
     entities = [
@@ -24,9 +26,10 @@ import com.estimalaces.app.data.entity.SaleEntity
         SaleEntity::class,
         GoalEntity::class,
         GiftEntity::class,
-        PaymentEntity::class
+        PaymentEntity::class,
+        StockMovementEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class EstimaLacesDatabase : RoomDatabase() {
@@ -36,6 +39,7 @@ abstract class EstimaLacesDatabase : RoomDatabase() {
     abstract fun goalDao(): GoalDao
     abstract fun giftDao(): GiftDao
     abstract fun paymentDao(): PaymentDao
+    abstract fun stockMovementDao(): StockMovementDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -54,6 +58,26 @@ abstract class EstimaLacesDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE sales ADD COLUMN externalOrderId TEXT NOT NULL DEFAULT ''")
                 db.execSQL("ALTER TABLE sales ADD COLUMN source TEXT NOT NULL DEFAULT 'APP'")
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS stock_movements (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        productId INTEGER NOT NULL,
+                        productName TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        quantity INTEGER NOT NULL,
+                        previousStock INTEGER NOT NULL,
+                        currentStock INTEGER NOT NULL,
+                        note TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
             }
         }
     }
