@@ -30,6 +30,7 @@ class EstimaLacesRepository(
     private val giftDao: GiftDao
 ) {
     fun observeProducts(): Flow<List<ProductEntity>> = productDao.observeProducts()
+    fun observeLowStockProducts(): Flow<List<ProductEntity>> = productDao.observeLowStockProducts()
     fun observeClients(): Flow<List<ClientEntity>> = clientDao.observeClients()
     fun observeSales(): Flow<List<SaleEntity>> = saleDao.observeSales()
     fun observeGoal(): Flow<GoalEntity?> = goalDao.observeGoal()
@@ -39,14 +40,18 @@ class EstimaLacesRepository(
             saleDao.observeSoldBetween(range.start, range.end),
             productDao.observeSpentBetween(range.start, range.end),
             saleDao.observeProfitBetween(range.start, range.end),
-            goalDao.observeGoal()
-        ) { sold, spent, profit, goal ->
+            goalDao.observeGoal(),
+            productDao.observeLowStockProducts()
+        ) { sold, spent, profit, goal, lowStock ->
             DashboardSummary(
                 totalSold = sold,
                 totalSpent = spent,
                 profit = profit,
                 monthlyGoal = goal?.monthlyGoal ?: 0.0,
-                maxGiftAfterGoal = goal?.maxGiftValue ?: 0.0
+                maxGiftAfterGoal = goal?.maxGiftValue ?: 0.0,
+                lowStockMessages = lowStock.map {
+                    "${it.name} esta acabando (${it.currentQuantity} unidades restantes)"
+                }
             )
         }
     }
@@ -88,19 +93,57 @@ class EstimaLacesRepository(
         type: String,
         purchaseValue: Double,
         supplier: String,
-        notes: String
+        notes: String,
+        currentQuantity: Int = 1,
+        minimumQuantity: Int = 1
     ) = withContext(Dispatchers.IO) {
-        productDao.insert(
+        val cleanedName = name.trim()
+        val existing = productDao.findByName(cleanedName)
+        val product = ProductEntity(
+            id = existing?.id ?: 0,
+            name = cleanedName,
+            type = type,
+            purchaseValue = purchaseValue,
+            suggestedSaleValue = PricingRules.suggestedSaleValue(purchaseValue),
+            createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+            supplier = supplier.trim(),
+            notes = notes.trim(),
+            currentQuantity = currentQuantity.coerceAtLeast(0),
+            minimumQuantity = minimumQuantity.coerceAtLeast(0)
+        )
+        if (existing == null) {
+            productDao.insert(product)
+        } else {
+            productDao.update(product)
+        }
+    }
+
+    suspend fun addStock(productId: Long, amount: Int) = withContext(Dispatchers.IO) {
+        if (amount > 0) productDao.addStock(productId, amount)
+    }
+
+    private suspend fun ensureProduct(
+        name: String,
+        type: String,
+        purchaseValue: Double,
+        initialQuantity: Int = 0
+    ): ProductEntity? {
+        val cleanedName = name.trim()
+        if (cleanedName.isBlank()) return null
+        val existing = productDao.findByName(cleanedName)
+        if (existing != null) return existing
+        val id = productDao.insert(
             ProductEntity(
                 name = name.trim(),
                 type = type,
                 purchaseValue = purchaseValue,
                 suggestedSaleValue = PricingRules.suggestedSaleValue(purchaseValue),
                 createdAt = System.currentTimeMillis(),
-                supplier = supplier.trim(),
-                notes = notes.trim()
+                currentQuantity = initialQuantity.coerceAtLeast(0),
+                minimumQuantity = 1
             )
         )
+        return productDao.findById(id)
     }
 
     suspend fun registerSale(
@@ -112,9 +155,15 @@ class EstimaLacesRepository(
         productCost: Double,
         giftApplied: Boolean,
         giftValue: Double,
+        giftType: String,
+        giftProductId: Long?,
+        giftProductName: String,
         paymentMethod: String,
+        cardFeePercent: Double,
         notes: String
     ) = withContext(Dispatchers.IO) {
+        val product = productId?.let { productDao.findById(it) }
+            ?: ensureProduct(productName, productType, productCost, initialQuantity = 0)
         val cleanedClientName = clientName.trim().ifBlank { "Cliente sem nome" }
         val existingClient = clientDao.findByName(cleanedClientName)
         val client = if (existingClient == null) {
@@ -124,24 +173,38 @@ class EstimaLacesRepository(
             existingClient
         }
 
-        val profit = PricingRules.saleProfit(saleValue, productCost, if (giftApplied) giftValue else 0.0)
+        val finalGiftValue = if (giftApplied && giftType == "VALOR") giftValue else 0.0
+        val cardFee = if (paymentMethod == "Cartao") cardFeePercent.coerceAtLeast(0.0) else 0.0
+        val profit = PricingRules.saleProfit(saleValue, productCost, finalGiftValue, cardFee)
         saleDao.insert(
             SaleEntity(
-                productId = productId,
-                productName = productName.trim(),
-                productType = productType,
+                productId = product?.id,
+                productName = product?.name ?: productName.trim(),
+                productType = product?.type ?: productType,
                 clientId = client.id.takeIf { it > 0 },
                 clientName = cleanedClientName,
                 saleValue = saleValue,
                 productCost = productCost,
                 profit = profit,
                 giftApplied = giftApplied,
-                giftValue = if (giftApplied) giftValue else 0.0,
+                giftValue = finalGiftValue,
+                giftType = if (giftApplied) giftType else "VALOR",
+                giftProductId = giftProductId,
+                giftProductName = if (giftApplied && giftType == "PRODUTO") giftProductName.trim() else "",
                 paymentMethod = paymentMethod,
+                cardFeePercent = cardFee,
+                cardFeeValue = PricingRules.cardFeeValue(saleValue, cardFee),
                 notes = notes.trim(),
                 soldAt = System.currentTimeMillis()
             )
         )
+
+        product?.let { if (it.currentQuantity > 0) productDao.decrementStock(it.id) }
+        if (giftApplied && giftType == "PRODUTO") {
+            val giftProduct = giftProductId?.let { productDao.findById(it) }
+                ?: ensureProduct(giftProductName, "produto", 0.0, initialQuantity = 0)
+            giftProduct?.let { if (it.currentQuantity > 0) productDao.decrementStock(it.id) }
+        }
 
         val newPurchaseCount = client.purchaseCount + 1
         clientDao.update(client.copy(purchaseCount = newPurchaseCount, lastPurchaseAt = System.currentTimeMillis()))
@@ -170,6 +233,49 @@ class EstimaLacesRepository(
 
     suspend fun exportRows(): List<SaleExportRow> = withContext(Dispatchers.IO) {
         saleDao.exportRows()
+    }
+
+    suspend fun registerExternalSale(
+        externalOrderId: String,
+        productName: String,
+        clientName: String,
+        saleValue: Double,
+        productCost: Double,
+        soldAt: Long = System.currentTimeMillis()
+    ) = withContext(Dispatchers.IO) {
+        if (externalOrderId.isNotBlank() && saleDao.countByExternalOrderId(externalOrderId) > 0) {
+            return@withContext
+        }
+        val product = ensureProduct(productName, "lace", productCost, initialQuantity = 0)
+        val cleanedClientName = clientName.trim().ifBlank { "Cliente sem nome" }
+        val existingClient = clientDao.findByName(cleanedClientName)
+        val client = if (existingClient == null) {
+            val id = clientDao.insert(ClientEntity(name = cleanedClientName))
+            ClientEntity(id = id, name = cleanedClientName)
+        } else {
+            existingClient
+        }
+        saleDao.insert(
+            SaleEntity(
+                productId = product?.id,
+                productName = productName.trim(),
+                productType = product?.type ?: "lace",
+                clientId = client.id.takeIf { it > 0 },
+                clientName = cleanedClientName,
+                saleValue = saleValue,
+                productCost = productCost,
+                profit = PricingRules.saleProfit(saleValue, productCost, 0.0),
+                giftApplied = false,
+                giftValue = 0.0,
+                paymentMethod = "Site",
+                notes = "Venda importada do site",
+                soldAt = soldAt,
+                externalOrderId = externalOrderId,
+                source = "SITE"
+            )
+        )
+        product?.let { if (it.currentQuantity > 0) productDao.decrementStock(it.id) }
+        clientDao.update(client.copy(purchaseCount = client.purchaseCount + 1, lastPurchaseAt = soldAt))
     }
 
     fun observeClientGiftMessage(clientName: String): Flow<String?> {

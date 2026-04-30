@@ -4,10 +4,12 @@ import android.app.Application
 import androidx.room.Room
 import com.estimalaces.app.data.database.EstimaLacesDatabase
 import com.estimalaces.app.data.repository.EstimaLacesRepository
+import com.estimalaces.app.integration.OrdersSyncService
 
 class EstimaLacesApp : Application() {
     lateinit var repository: EstimaLacesRepository
         private set
+    private var ordersSyncService: OrdersSyncService? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -15,7 +17,9 @@ class EstimaLacesApp : Application() {
             applicationContext,
             EstimaLacesDatabase::class.java,
             "estimalaces.db"
-        ).build()
+        )
+            .addMigrations(EstimaLacesDatabase.MIGRATION_1_2, EstimaLacesDatabase.MIGRATION_2_3)
+            .build()
 
         repository = EstimaLacesRepository(
             productDao = database.productDao(),
@@ -24,5 +28,7 @@ class EstimaLacesApp : Application() {
             goalDao = database.goalDao(),
             giftDao = database.giftDao()
         )
+
+        ordersSyncService = OrdersSyncService(repository).also { it.start() }
     }
 }

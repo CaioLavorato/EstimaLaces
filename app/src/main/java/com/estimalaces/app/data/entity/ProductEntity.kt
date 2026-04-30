@@ -12,5 +12,7 @@ data class ProductEntity(
     val suggestedSaleValue: Double,
     val createdAt: Long,
     val supplier: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val currentQuantity: Int = 1,
+    val minimumQuantity: Int = 1
 )

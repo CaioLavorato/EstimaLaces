@@ -12,8 +12,8 @@ class SaleViewModel(private val repository: EstimaLacesRepository) : ViewModel()
     val products = repository.observeProducts()
     val clients = repository.observeClients()
 
-    fun alert(saleValue: Double, cost: Double, giftValue: Double): String? {
-        return PricingRules.saleAlert(saleValue, cost, giftValue)
+    fun alert(saleValue: Double, cost: Double, giftValue: Double, cardFeePercent: Double): String? {
+        return PricingRules.saleAlert(saleValue, cost, giftValue, cardFeePercent)
     }
 
     fun clientMessage(name: String, purchaseCount: Int?): String? {
@@ -29,7 +29,11 @@ class SaleViewModel(private val repository: EstimaLacesRepository) : ViewModel()
         cost: Double,
         giftApplied: Boolean,
         giftValue: Double,
+        giftType: String,
+        giftProduct: ProductEntity?,
+        giftProductName: String,
         payment: String,
+        cardFeePercent: Double,
         notes: String
     ) {
         val finalProductName = product?.name ?: manualProductName
@@ -44,7 +48,11 @@ class SaleViewModel(private val repository: EstimaLacesRepository) : ViewModel()
                 productCost = cost,
                 giftApplied = giftApplied,
                 giftValue = giftValue,
+                giftType = giftType,
+                giftProductId = giftProduct?.id,
+                giftProductName = giftProduct?.name ?: giftProductName,
                 paymentMethod = payment,
+                cardFeePercent = cardFeePercent,
                 notes = notes
             )
         }

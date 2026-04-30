@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use { load(it) }
+    }
 }
 
 android {
@@ -20,6 +29,18 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    val ordersApiKey = localProperties.getProperty("estimalaces.ordersApiKey")
+        ?: System.getenv("ESTIMALACES_ORDERS_API_KEY")
+        ?: ""
+    val ordersSyncUrl = localProperties.getProperty("estimalaces.ordersSyncUrl")
+        ?: "https://jeanniewigselaces.com.br/api/orders/sync?limit=10"
+
+    defaultConfig {
+        buildConfigField("String", "ORDERS_API_KEY", "\"$ordersApiKey\"")
+        buildConfigField("String", "ORDERS_SYNC_URL", "\"$ordersSyncUrl\"")
     }
 
     compileOptions {

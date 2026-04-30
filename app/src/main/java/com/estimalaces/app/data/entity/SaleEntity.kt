@@ -16,7 +16,14 @@ data class SaleEntity(
     val profit: Double,
     val giftApplied: Boolean,
     val giftValue: Double,
+    val giftType: String = "VALOR",
+    val giftProductId: Long? = null,
+    val giftProductName: String = "",
     val paymentMethod: String,
+    val cardFeePercent: Double = 0.0,
+    val cardFeeValue: Double = 0.0,
     val notes: String,
-    val soldAt: Long
+    val soldAt: Long,
+    val externalOrderId: String = "",
+    val source: String = "APP"
 )

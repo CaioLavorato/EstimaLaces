@@ -82,6 +82,14 @@ fun HomeScreen(viewModel: HomeViewModel) {
             }
         }
 
+        if (summary.lowStockMessages.isNotEmpty()) {
+            SectionCard("Estoque baixo") {
+                summary.lowStockMessages.take(5).forEach { message ->
+                    Text(message, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
         SectionCard("Atalhos") {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.TrendingUp, contentDescription = null)

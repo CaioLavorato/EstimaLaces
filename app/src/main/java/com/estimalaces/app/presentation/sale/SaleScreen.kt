@@ -44,14 +44,19 @@ fun SaleScreen(viewModel: SaleViewModel) {
     var sale by remember { mutableStateOf("") }
     var cost by remember { mutableStateOf("") }
     var giftApplied by remember { mutableStateOf(false) }
+    var giftType by remember { mutableStateOf("VALOR") }
     var giftValue by remember { mutableStateOf("") }
+    var selectedGiftProduct by remember { mutableStateOf<ProductEntity?>(null) }
+    var giftProductName by remember { mutableStateOf("") }
     var payment by remember { mutableStateOf("Pix") }
+    var cardFeePercent by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
     val saleValue = sale.toMoneyDouble()
     val costValue = selectedProduct?.purchaseValue ?: cost.toMoneyDouble()
-    val giftCost = if (giftApplied) giftValue.toMoneyDouble() else 0.0
-    val alert = viewModel.alert(saleValue, costValue, giftCost)
+    val giftCost = if (giftApplied && giftType == "VALOR") giftValue.toMoneyDouble() else 0.0
+    val cardFee = if (payment == "Cartao") cardFeePercent.toMoneyDouble() else 0.0
+    val alert = viewModel.alert(saleValue, costValue, giftCost, cardFee)
     val purchaseCount = clients.firstOrNull { it.name.equals(client, ignoreCase = true) }?.purchaseCount
     val clientMessage = viewModel.clientMessage(client, purchaseCount)
 
@@ -74,30 +79,86 @@ fun SaleScreen(viewModel: SaleViewModel) {
                         manualProduct = product.name
                         cost = product.purchaseValue.toString()
                     },
-                    label = { Text("${product.name} (${product.suggestedSaleValue.asMoney()})") }
+                    label = { Text("${product.name} (${product.currentQuantity} un.)") }
                 )
             }
             TextFieldLine("Produto", manualProduct, { manualProduct = it; selectedProduct = null })
             MoneyField("Custo do produto", if (selectedProduct != null) costValue.asMoney() else cost, { cost = it })
             Text("Venda ideal: ${(costValue * 2).asMoney()}", fontWeight = FontWeight.Bold)
+            selectedProduct?.let {
+                val stockMessage = when {
+                    it.currentQuantity <= 0 -> "Estoque zerado. Confirme se essa venda veio do site ou reposicao."
+                    it.currentQuantity <= it.minimumQuantity -> "Estoque baixo - necessario reposicao."
+                    else -> "Estoque atual: ${it.currentQuantity}"
+                }
+                Text(stockMessage, color = if (it.currentQuantity <= it.minimumQuantity) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+            }
         }
 
         SectionCard("Dados da venda") {
+            clients.take(4).forEach { savedClient ->
+                FilterChip(
+                    selected = client == savedClient.name,
+                    onClick = { client = savedClient.name },
+                    label = { Text(savedClient.name) }
+                )
+            }
             TextFieldLine("Cliente", client, { client = it })
             clientMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) }
             MoneyField("Valor da venda", sale, { sale = it })
             ChoiceChips(listOf("Pix", "Dinheiro", "Cartao", "Fiado"), payment, { payment = it })
+            if (payment == "Cartao") {
+                MoneyField("Taxa do cartao (%) opcional", cardFeePercent, { cardFeePercent = it })
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = giftApplied, onCheckedChange = { giftApplied = it })
                 Text("Brinde aplicado")
             }
-            if (giftApplied) MoneyField("Valor do brinde", giftValue, { giftValue = it })
+            if (giftApplied) {
+                ChoiceChips(listOf("VALOR", "PRODUTO"), giftType, { giftType = it })
+                if (giftType == "VALOR") {
+                    MoneyField("Valor do brinde", giftValue, { giftValue = it })
+                } else {
+                    products.take(4).forEach { product ->
+                        FilterChip(
+                            selected = selectedGiftProduct?.id == product.id,
+                            onClick = {
+                                selectedGiftProduct = product
+                                giftProductName = product.name
+                            },
+                            label = { Text("${product.name} (${product.currentQuantity} un.)") }
+                        )
+                    }
+                    TextFieldLine("Produto do brinde", giftProductName, {
+                        giftProductName = it
+                        selectedGiftProduct = null
+                    })
+                }
+            }
             TextFieldLine("Observacao", notes, { notes = it })
-            Text("Lucro automatico: ${(saleValue - costValue - giftCost).asMoney()}", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+            Text(
+                "Lucro automatico: ${(saleValue - costValue - giftCost - (saleValue * cardFee / 100.0)).asMoney()}",
+                fontWeight = FontWeight.Bold,
+                fontSize = 22.sp
+            )
             alert?.let { Text(it, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
             PrimaryAction("Salvar venda") {
-                viewModel.save(selectedProduct, manualProduct, client, saleValue, costValue, giftApplied, giftCost, payment, notes)
-                selectedProduct = null; manualProduct = ""; client = ""; sale = ""; cost = ""; giftApplied = false; giftValue = ""; notes = ""
+                viewModel.save(
+                    selectedProduct,
+                    manualProduct,
+                    client,
+                    saleValue,
+                    costValue,
+                    giftApplied,
+                    giftCost,
+                    giftType,
+                    selectedGiftProduct,
+                    giftProductName,
+                    payment,
+                    cardFee,
+                    notes
+                )
+                selectedProduct = null; manualProduct = ""; client = ""; sale = ""; cost = ""; giftApplied = false; giftType = "VALOR"; giftValue = ""; selectedGiftProduct = null; giftProductName = ""; cardFeePercent = ""; notes = ""
             }
         }
         Spacer(Modifier.height(72.dp))

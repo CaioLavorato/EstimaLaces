@@ -39,7 +39,11 @@ class CsvExportService(private val context: Context) {
             "Lucro",
             "Brinde aplicado",
             "Valor do brinde",
+            "Tipo do brinde",
+            "Produto do brinde",
             "Forma de pagamento",
+            "Taxa cartao %",
+            "Valor taxa cartao",
             "Observacoes"
         ).joinToString(";")
 
@@ -55,7 +59,11 @@ class CsvExportService(private val context: Context) {
                 row.profit.asCsvNumber(),
                 if (row.giftApplied) "Sim" else "Nao",
                 row.giftValue.asCsvNumber(),
+                row.giftType,
+                row.giftProduct,
                 row.paymentMethod,
+                row.cardFeePercent.asCsvNumber(),
+                row.cardFeeValue.asCsvNumber(),
                 row.notes
             ).joinToString(";") { it.escapeCsv() }
         }

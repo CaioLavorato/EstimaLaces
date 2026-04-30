@@ -17,6 +17,9 @@ interface SaleDao {
     @Insert
     suspend fun insert(sale: SaleEntity): Long
 
+    @Query("SELECT COUNT(*) FROM sales WHERE externalOrderId = :externalOrderId AND externalOrderId != ''")
+    suspend fun countByExternalOrderId(externalOrderId: String): Int
+
     @Query("SELECT COALESCE(SUM(saleValue), 0) FROM sales WHERE soldAt BETWEEN :start AND :end")
     fun observeSoldBetween(start: Long, end: Long): Flow<Double>
 
@@ -43,7 +46,11 @@ interface SaleDao {
                sales.profit AS profit,
                sales.giftApplied AS giftApplied,
                sales.giftValue AS giftValue,
+               sales.giftType AS giftType,
+               sales.giftProductName AS giftProduct,
                sales.paymentMethod AS paymentMethod,
+               sales.cardFeePercent AS cardFeePercent,
+               sales.cardFeeValue AS cardFeeValue,
                sales.notes AS notes
         FROM sales
         ORDER BY sales.soldAt DESC

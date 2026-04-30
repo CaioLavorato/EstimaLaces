@@ -38,6 +38,8 @@ fun ProductScreen(viewModel: ProductViewModel) {
     var purchase by remember { mutableStateOf("") }
     var supplier by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    var quantity by remember { mutableStateOf("1") }
+    var minimum by remember { mutableStateOf("1") }
     val purchaseValue = purchase.toMoneyDouble()
     val suggested = viewModel.suggestedValue(purchaseValue)
 
@@ -55,14 +57,24 @@ fun ProductScreen(viewModel: ProductViewModel) {
             TextFieldLine("Nome do produto", name, { name = it })
             ChoiceChips(listOf("lace", "wig", "peruca", "manutencao", "produto"), type, { type = it })
             MoneyField("Valor de compra", purchase, { purchase = it })
+            TextFieldLine("Quantidade atual", quantity, { quantity = it.filter { char -> char.isDigit() } })
+            TextFieldLine("Quantidade minima para alerta", minimum, { minimum = it.filter { char -> char.isDigit() } })
             TextFieldLine("Fornecedor", supplier, { supplier = it })
             TextFieldLine("Observacao", notes, { notes = it })
             Text("VALOR SUGERIDO DE VENDA", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text(suggested.asMoney(), fontWeight = FontWeight.Bold, fontSize = 34.sp)
             Text("Lucro esperado: ${viewModel.expectedProfit(purchaseValue).asMoney()} | Margem: 100%")
             PrimaryAction("Salvar entrada") {
-                viewModel.save(name, type, purchaseValue, supplier, notes)
-                name = ""; purchase = ""; supplier = ""; notes = ""
+                viewModel.save(
+                    name,
+                    type,
+                    purchaseValue,
+                    supplier,
+                    notes,
+                    quantity.toIntOrNull() ?: 1,
+                    minimum.toIntOrNull() ?: 1
+                )
+                name = ""; purchase = ""; supplier = ""; notes = ""; quantity = "1"; minimum = "1"
             }
         }
 
@@ -71,7 +83,8 @@ fun ProductScreen(viewModel: ProductViewModel) {
                 Text("Nenhum produto cadastrado ainda.")
             }
             products.take(8).forEach {
-                Text("${it.name} - ${it.purchaseValue.asMoney()} -> ${it.suggestedSaleValue.asMoney()} (${it.createdAt.asDate()})")
+                val stockAlert = if (it.currentQuantity <= it.minimumQuantity) " - Estoque baixo" else ""
+                Text("${it.name} - estoque ${it.currentQuantity} - ${it.purchaseValue.asMoney()} -> ${it.suggestedSaleValue.asMoney()} (${it.createdAt.asDate()})$stockAlert")
             }
         }
         Spacer(Modifier.height(72.dp))
