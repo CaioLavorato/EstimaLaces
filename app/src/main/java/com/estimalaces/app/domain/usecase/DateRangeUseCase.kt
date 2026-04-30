@@ -8,7 +8,7 @@ import java.time.temporal.TemporalAdjusters
 data class DateRange(val start: Long, val end: Long)
 
 class DateRangeUseCase(
-    private val zoneId: ZoneId = ZoneId.systemDefault()
+    private val zoneId: ZoneId = ZoneId.of("America/Sao_Paulo")
 ) {
     fun today(): DateRange = range(LocalDate.now(zoneId), LocalDate.now(zoneId))
 

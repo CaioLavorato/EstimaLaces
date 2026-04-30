@@ -21,7 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.estimalaces.app.domain.model.ReportSummary
-import com.estimalaces.app.export.CsvExportService
+import com.estimalaces.app.export.XlsxExportService
 import com.estimalaces.app.presentation.PrimaryAction
 import com.estimalaces.app.presentation.SectionCard
 import com.estimalaces.app.presentation.asMoney
@@ -69,7 +69,7 @@ fun ReportScreen(viewModel: ReportViewModel, context: Context) {
         }
         PrimaryAction("EXPORTAR PLANILHA") {
             viewModel.export { rows ->
-                CsvExportService(context).shareSales(rows)
+                XlsxExportService(context).shareSales(rows)
             }
         }
         Spacer(Modifier.height(72.dp))
