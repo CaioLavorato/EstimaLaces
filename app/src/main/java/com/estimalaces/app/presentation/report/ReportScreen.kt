@@ -39,8 +39,8 @@ fun ReportScreen(viewModel: ReportViewModel, context: Context) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Relatorios", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-        SectionCard("Periodo") {
+        Text("Relatórios", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        SectionCard("Período") {
             ReportFilter.entries.forEach { item ->
                 FilterChip(
                     selected = filter == item,
@@ -50,7 +50,7 @@ fun ReportScreen(viewModel: ReportViewModel, context: Context) {
                             when (item) {
                                 ReportFilter.TODAY -> "Hoje"
                                 ReportFilter.WEEK -> "Semana"
-                                ReportFilter.MONTH -> "Mes"
+                                ReportFilter.MONTH -> "Mês"
                             }
                         )
                     }
@@ -65,7 +65,7 @@ fun ReportScreen(viewModel: ReportViewModel, context: Context) {
             Text("Melhor produto: ${report.bestProduct}")
             Text("Clientes recorrentes: ${report.recurringClients}")
             Text("Brindes liberados: ${report.giftsReleased}")
-            Text(if (report.goalReached) "Meta atingida" else "Meta ainda nao atingida")
+            Text(if (report.goalReached) "Meta atingida" else "Meta ainda não atingida")
         }
         PrimaryAction("EXPORTAR PLANILHA") {
             viewModel.export { rows ->

@@ -54,7 +54,7 @@ class EstimaLacesRepository(
                 monthlyGoal = goal?.monthlyGoal ?: 0.0,
                 maxGiftAfterGoal = goal?.maxGiftValue ?: 0.0,
                 lowStockMessages = lowStock.map {
-                    "${it.name} esta acabando (${it.currentQuantity} unidades restantes)"
+                    "${it.name} está acabando (${it.currentQuantity} unidades restantes)"
                 }
             )
         }
@@ -212,7 +212,7 @@ class EstimaLacesRepository(
         }
 
         val finalGiftValue = if (giftApplied && giftType == "VALOR") giftValue else 0.0
-        val cardFee = if (paymentMethod == "Cartao") cardFeePercent.coerceAtLeast(0.0) else 0.0
+        val cardFee = if (paymentMethod == "Cartão") cardFeePercent.coerceAtLeast(0.0) else 0.0
         val profit = PricingRules.saleProfit(saleValue, productCost, finalGiftValue, cardFee)
         saleDao.insert(
             SaleEntity(

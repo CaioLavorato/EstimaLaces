@@ -52,9 +52,9 @@ fun GoalScreen(viewModel: GoalViewModel) {
         Text("Metas e brindes", fontSize = 26.sp, fontWeight = FontWeight.Bold)
         SectionCard("Meta mensal") {
             MoneyField("Meta mensal", monthlyGoal, { monthlyGoal = it })
-            MoneyField("Brinde maximo apos meta", maxGift, { maxGift = it })
+            MoneyField("Brinde máximo após meta", maxGift, { maxGift = it })
             Text("Atual: ${goal?.monthlyGoal?.asMoney() ?: "sem meta"}")
-            Text("Quando bater a meta, o app avisa que pode liberar brinde de ate ${maxGift.toMoneyDouble().asMoney()}.")
+            Text("Quando bater a meta, o app avisa que pode liberar brinde de até ${maxGift.toMoneyDouble().asMoney()}.")
             PrimaryAction("Salvar meta") {
                 viewModel.save(monthlyGoal.toMoneyDouble(), maxGift.toMoneyDouble())
             }

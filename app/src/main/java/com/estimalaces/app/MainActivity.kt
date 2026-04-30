@@ -2,8 +2,13 @@ package com.estimalaces.app
 
 import android.os.Bundle
 import android.content.Context
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
@@ -43,11 +48,20 @@ import com.estimalaces.app.presentation.theme.EstimaLacesTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestNotificationPermission()
         val factory = EstimaLacesViewModelFactory((application as EstimaLacesApp).repository)
         setContent {
             EstimaLacesTheme {
                 EstimaLacesAppScreen(factory, this)
             }
+        }
+    }
+
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 10)
         }
     }
 }
@@ -59,12 +73,12 @@ private data class AppDestination(
 )
 
 private val destinations = listOf(
-    AppDestination("home", "Inicio", Icons.Default.Home),
+    AppDestination("home", "Início", Icons.Default.Home),
     AppDestination("products", "Produtos", Icons.Default.ShoppingBag),
     AppDestination("sales", "Vendas", Icons.Default.PointOfSale),
     AppDestination("clients", "Clientes", Icons.Default.People),
     AppDestination("goals", "Metas", Icons.Default.Flag),
-    AppDestination("reports", "Relatorios", Icons.Default.Assessment)
+    AppDestination("reports", "Relatórios", Icons.Default.Assessment)
 )
 
 @Composable

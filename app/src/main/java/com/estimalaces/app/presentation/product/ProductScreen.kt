@@ -74,12 +74,12 @@ fun ProductScreen(viewModel: ProductViewModel) {
 
         SectionCard("Novo produto") {
             TextFieldLine("Nome do produto", name, { name = it })
-            ChoiceChips(listOf("lace", "wig", "peruca", "manutencao", "produto"), type, { type = it })
+            ChoiceChips(listOf("lace", "wig", "peruca", "manutenção", "produto"), type, { type = it })
             MoneyField("Valor de compra", purchase, { purchase = it })
             TextFieldLine("Quantidade atual", quantity, { quantity = it.filter { char -> char.isDigit() } })
-            TextFieldLine("Quantidade minima para alerta", minimum, { minimum = it.filter { char -> char.isDigit() } })
+            TextFieldLine("Quantidade mínima para alerta", minimum, { minimum = it.filter { char -> char.isDigit() } })
             TextFieldLine("Fornecedor", supplier, { supplier = it })
-            TextFieldLine("Observacao", notes, { notes = it })
+            TextFieldLine("Observação", notes, { notes = it })
             Text("VALOR SUGERIDO DE VENDA", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
             Text(suggested.asMoney(), fontWeight = FontWeight.Bold, fontSize = 34.sp)
             Text("Lucro esperado: ${viewModel.expectedProfit(purchaseValue).asMoney()} | Margem: 100%")
@@ -97,7 +97,7 @@ fun ProductScreen(viewModel: ProductViewModel) {
             }
         }
 
-        SectionCard("Ultimos produtos") {
+        SectionCard("Últimos produtos") {
             if (products.isEmpty()) {
                 Text("Nenhum produto cadastrado ainda.")
             }
@@ -168,12 +168,12 @@ private fun ReplenishStockDialog(
                 Text("Produto: ${product.name}", fontWeight = FontWeight.Bold)
                 Text("Estoque atual: ${product.currentQuantity} unidades")
                 TextFieldLine("Quantidade a adicionar", quantity, onQuantityChange)
-                TextFieldLine("Observacao/motivo", note, onNoteChange)
+                TextFieldLine("Observação/motivo", note, onNoteChange)
                 if (projectedStock > 0) {
                     Text("Novo estoque: $projectedStock unidades")
                     if (projectedStock <= product.minimumQuantity) {
                         Text(
-                            "Estoque ainda abaixo do minimo",
+                            "Estoque ainda abaixo do mínimo",
                             color = MaterialTheme.colorScheme.error,
                             fontWeight = FontWeight.Bold
                         )
@@ -194,7 +194,7 @@ private fun ReplenishStockDialog(
         },
         confirmButton = {
             Button(onClick = onConfirm) {
-                Text("Confirmar reposicao")
+                Text("Confirmar reposição")
             }
         },
         dismissButton = {

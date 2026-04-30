@@ -5,11 +5,17 @@ import androidx.room.Room
 import com.estimalaces.app.data.database.EstimaLacesDatabase
 import com.estimalaces.app.data.repository.EstimaLacesRepository
 import com.estimalaces.app.integration.OrdersSyncService
+import com.estimalaces.app.notification.LowStockNotifier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class EstimaLacesApp : Application() {
     lateinit var repository: EstimaLacesRepository
         private set
     private var ordersSyncService: OrdersSyncService? = null
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
         super.onCreate()
@@ -35,5 +41,11 @@ class EstimaLacesApp : Application() {
         )
 
         ordersSyncService = OrdersSyncService(repository).also { it.start() }
+        val notifier = LowStockNotifier(this)
+        appScope.launch {
+            repository.observeLowStockProducts().collect { products ->
+                notifier.notifyLowStock(products)
+            }
+        }
     }
 }

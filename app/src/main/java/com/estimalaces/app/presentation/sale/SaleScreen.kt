@@ -108,14 +108,14 @@ fun SaleScreen(viewModel: SaleViewModel) {
             Text("Venda ideal: ${(costValue * 2).asMoney()}", fontWeight = FontWeight.Bold)
             selectedProduct?.let {
                 val stockMessage = when {
-                    it.currentQuantity <= 0 -> "Estoque zerado. Confirme se essa venda veio do site ou reposicao."
-                    it.currentQuantity <= it.minimumQuantity -> "Estoque baixo - necessario reposicao."
+                    it.currentQuantity <= 0 -> "Estoque zerado. Confirme se essa venda veio do site ou de uma reposição."
+                    it.currentQuantity <= it.minimumQuantity -> "Estoque baixo - reposição necessária."
                     else -> "Estoque atual: ${it.currentQuantity}"
                 }
                 Text(stockMessage, color = if (it.currentQuantity <= it.minimumQuantity) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
             }
             if (selectedProduct == null && allowCreateProduct) {
-                Text("Produto novo sera cadastrado sem estoque inicial. Para controlar estoque, reponha depois.", color = MaterialTheme.colorScheme.error)
+                Text("Produto novo será cadastrado sem estoque inicial. Para controlar o estoque, faça uma reposição depois.", color = MaterialTheme.colorScheme.error)
             }
         }
 
@@ -139,9 +139,9 @@ fun SaleScreen(viewModel: SaleViewModel) {
             )
             clientMessage?.let { Text(it, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold) }
             MoneyField("Valor da venda", sale, { sale = it })
-            ChoiceChips(listOf("Pix", "Dinheiro", "Cartao", "Fiado"), payment, { payment = it })
-            if (payment == "Cartao") {
-                MoneyField("Taxa do cartao (%) opcional", cardFeePercent, { cardFeePercent = it })
+            ChoiceChips(listOf("Pix", "Dinheiro", "Cartão", "Fiado"), payment, { payment = it })
+            if (payment == "Cartão") {
+                MoneyField("Taxa do cartão (%) opcional", cardFeePercent, { cardFeePercent = it })
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(checked = giftApplied, onCheckedChange = { giftApplied = it })
@@ -172,15 +172,15 @@ fun SaleScreen(viewModel: SaleViewModel) {
                     )
                 }
             }
-            TextFieldLine("Observacao", notes, { notes = it })
+            TextFieldLine("Observação", notes, { notes = it })
             Text(
-                "Lucro automatico: ${(saleValue - costValue - giftCost - (saleValue * cardFee / 100.0)).asMoney()}",
+                "Lucro automático: ${(saleValue - costValue - giftCost - (saleValue * cardFee / 100.0)).asMoney()}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp
             )
             alert?.let { Text(it, color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold) }
             if (!canSaveSale) {
-                Text("Selecione um produto/cliente existente ou confirme cadastro novo antes de salvar.", color = MaterialTheme.colorScheme.error)
+                Text("Selecione um produto e um cliente existentes ou confirme um novo cadastro antes de salvar.", color = MaterialTheme.colorScheme.error)
             }
             PrimaryAction("Salvar venda", enabled = canSaveSale) {
                 viewModel.save(
@@ -238,7 +238,7 @@ private fun ProductSearchField(
         }
     }
     if (query.length >= 3 && exact == null && selectedProduct == null && !allowCreate) {
-        Text("Confira se o produto ja nao esta cadastrado antes de criar novo.", color = MaterialTheme.colorScheme.error)
+        Text("Confira se o produto já não está cadastrado antes de criar um novo.", color = MaterialTheme.colorScheme.error)
         Button(onClick = onAllowCreate, modifier = Modifier.fillMaxWidth()) {
             Text("Cadastrar novo produto: $query")
         }
@@ -280,7 +280,7 @@ private fun ClientSearchField(
         }
     }
     if (query.length >= 3 && exact == null && selectedClient == null && !allowCreate) {
-        Text("Confira se o cliente ja nao esta cadastrado antes de criar novo.", color = MaterialTheme.colorScheme.error)
+        Text("Confira se o cliente já não está cadastrado antes de criar um novo.", color = MaterialTheme.colorScheme.error)
         Button(onClick = onAllowCreate, modifier = Modifier.fillMaxWidth()) {
             Text("Cadastrar novo cliente: $query")
         }

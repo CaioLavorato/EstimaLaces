@@ -33,7 +33,7 @@ fun ClientScreen(viewModel: SaleViewModel) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
-        Text("Clientes fieis", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Text("Clientes fiéis", fontSize = 26.sp, fontWeight = FontWeight.Bold)
         SectionCard("Compras por cliente") {
             if (clients.isEmpty()) Text("Os clientes aparecem aqui depois da primeira venda.")
             clients.forEach { client ->

@@ -32,7 +32,7 @@ object PricingRules {
     ): String? {
         val profit = saleProfit(saleValue, productCost, giftValue, cardFeePercent)
         return when {
-            profit < 0.0 -> "Venda com prejuizo. Revise o preco antes de confirmar."
+            profit < 0.0 -> "Venda com prejuízo. Revise o preço antes de confirmar."
             saleValue < suggestedSaleValue(productCost) -> "Venda abaixo da margem ideal de 100%."
             else -> null
         }

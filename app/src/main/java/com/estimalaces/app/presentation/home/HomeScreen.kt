@@ -44,7 +44,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text("EstimaLaces", fontSize = 32.sp, fontWeight = FontWeight.Bold)
-        Text("Seu lucro comeca no preco certo.", style = MaterialTheme.typography.titleMedium)
+        Text("Seu lucro começa no preço certo.", style = MaterialTheme.typography.titleMedium)
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
@@ -52,7 +52,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
             color = MaterialTheme.colorScheme.primary
         ) {
             Column(Modifier.padding(18.dp)) {
-                Text("Lucro do mes", color = MaterialTheme.colorScheme.onPrimary)
+                Text("Lucro do mês", color = MaterialTheme.colorScheme.onPrimary)
                 Text(
                     summary.profit.asMoney(),
                     color = MaterialTheme.colorScheme.onPrimary,
@@ -73,7 +73,7 @@ fun HomeScreen(viewModel: HomeViewModel) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Icon(Icons.Default.CardGiftcard, contentDescription = null)
                     Text(
-                        "Meta batida! Pode liberar brinde de ate ${summary.maxGiftAfterGoal.asMoney()}",
+                        "Meta batida! Pode liberar brinde de até ${summary.maxGiftAfterGoal.asMoney()}",
                         fontWeight = FontWeight.Bold
                     )
                 }

@@ -20,7 +20,7 @@ class EstimaLacesViewModelFactory(
             SaleViewModel::class.java -> SaleViewModel(repository)
             GoalViewModel::class.java -> GoalViewModel(repository)
             ReportViewModel::class.java -> ReportViewModel(repository)
-            else -> error("ViewModel nao registrado: ${modelClass.name}")
+            else -> error("ViewModel não registrado: ${modelClass.name}")
         } as T
     }
 }

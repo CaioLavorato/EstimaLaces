@@ -61,9 +61,9 @@ class XlsxExportService(private val context: Context) {
             "Tipo do brinde",
             "Produto do brinde",
             "Forma de pagamento",
-            "Taxa cartao %",
-            "Valor taxa cartao",
-            "Observacoes"
+            "Taxa cartão %",
+            "Valor taxa cartão",
+            "Observações"
         )
         val data = rows.map { row ->
             listOf(
@@ -75,7 +75,7 @@ class XlsxExportService(private val context: Context) {
                 Cell.Money(row.suggestedValue),
                 Cell.Money(row.soldValue),
                 Cell.Money(row.profit),
-                Cell.Text(if (row.giftApplied) "Sim" else "Nao"),
+                Cell.Text(if (row.giftApplied) "Sim" else "Não"),
                 Cell.Money(row.giftValue),
                 Cell.Text(row.giftType),
                 Cell.Text(row.giftProduct),
@@ -87,7 +87,7 @@ class XlsxExportService(private val context: Context) {
         }
         return worksheetXml(
             title = "EstimaLaces - Vendas",
-            subtitle = "Seu lucro comeca no preco certo.",
+            subtitle = "Seu lucro começa no preço certo.",
             headers = headers,
             rows = data,
             widths = listOf(14, 22, 28, 16, 16, 16, 16, 14, 18, 16, 16, 22, 18, 14, 16, 30)
@@ -106,7 +106,7 @@ class XlsxExportService(private val context: Context) {
             listOf(Cell.Text("Total gasto"), Cell.Money(totalCost)),
             listOf(Cell.Text("Lucro"), Cell.Money(profit)),
             listOf(Cell.Text("Brindes em valor"), Cell.Money(gifts)),
-            listOf(Cell.Text("Taxas de cartao"), Cell.Money(cardFees))
+            listOf(Cell.Text("Taxas de cartão"), Cell.Money(cardFees))
         )
         return worksheetXml(
             title = "EstimaLaces - Resumo",
